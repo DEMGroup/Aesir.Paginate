@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aesir.Paginate", "Aesir.Paginate\Aesir.Paginate.csproj", "{6F56DE42-AC5C-4AE5-9BEF-2D98A90B000B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aesir.Paginate.Tests", "Aesir.Paginate.Tests\Aesir.Paginate.Tests.csproj", "{8C303350-747D-4848-B673-3B0ED7D6C740}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F56DE42-AC5C-4AE5-9BEF-2D98A90B000B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F56DE42-AC5C-4AE5-9BEF-2D98A90B000B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F56DE42-AC5C-4AE5-9BEF-2D98A90B000B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F56DE42-AC5C-4AE5-9BEF-2D98A90B000B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C303350-747D-4848-B673-3B0ED7D6C740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C303350-747D-4848-B673-3B0ED7D6C740}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C303350-747D-4848-B673-3B0ED7D6C740}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C303350-747D-4848-B673-3B0ED7D6C740}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
