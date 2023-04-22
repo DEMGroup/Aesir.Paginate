@@ -68,7 +68,7 @@ internal static class SortProvider
                              orderByParts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
 
             var propertyInfo = entityType.GetProperty(propertyName,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
             if (propertyInfo == null)
             {
                 throw new ArgumentException($"Invalid property name: {propertyName}");
