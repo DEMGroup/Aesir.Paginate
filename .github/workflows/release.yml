@@ -65,11 +65,10 @@ jobs:
       # Package the build into a single nupkg/supkg
       - name: Pack
         run: nuget pack Aesir.Paginate/Aesir.Paginate.csproj -IncludeReferencedProjects -Properties Configuration=Release -Version ${{needs.bump-version.outputs.new_version}} -OutputDirectory . -Symbols -SymbolPackageFormat snupkg
-      
-      
+
       - name: Push
         run: |
-          dotnet nuget push Aesir.Paginate.${{needs.bump-version.outputs.new_version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
+          dotnet nuget push Aesir.Paginate.${{needs.bump-version.outputs.new_version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
 
   create-new-github-release:
     needs: [release, bump-version]
