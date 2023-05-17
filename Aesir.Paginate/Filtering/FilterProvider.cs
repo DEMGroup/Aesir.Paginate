@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using LinqKit;
 
 namespace Aesir.Paginate.Filtering;
@@ -7,7 +8,7 @@ namespace Aesir.Paginate.Filtering;
 public static class FilterProvider
 {
     public static IEnumerable<T> Filter<T>(IEnumerable<T> source, IEnumerable<string> filters)
-        => Create<T>(filters) is { } predicate ? source.Where(predicate) : source;
+        => Create<T>(filters) is { } predicate ? source.Where(predicate.Compile()) : source;
 
     public static IQueryable<T> Filter<T>(IQueryable<T> source, IEnumerable<string> filters)
         => Create<T>(filters) is { } predicate ? source.Where(predicate) : source;
@@ -45,7 +46,7 @@ public static class FilterProvider
             .Select(x => x.Trim())
             .Where(x => !string.IsNullOrEmpty(x))
             .ToArray();
-        
+
         if (arr.Length == 0)
             return null;
 
@@ -73,20 +74,21 @@ public static class FilterProvider
             return Expression.Lambda<Func<T, bool>>(exp, obj);
         }
 
-        MethodCallExpression call;
         if (objProperty.Type == typeof(string))
         {
             var toLowerMethod = typeof(string).GetMethod("ToLower", Array.Empty<Type>());
             var memberToLowerCall = Expression.Call(objProperty, toLowerMethod!);
-            call = Expression.Call(memberToLowerCall, containsMethod, searchConst);
-            return Expression.Lambda<Func<T, bool>>(call, obj);
+            var nullCheck = Expression.NotEqual(objProperty, Expression.Constant(null));
+            var containsCall = Expression.Call(memberToLowerCall, containsMethod, searchConst);
+            var conditionalExpression = Expression.Condition(nullCheck, containsCall, Expression.Constant(false));
+            return Expression.Lambda<Func<T, bool>>(conditionalExpression, obj);
         }
 
         var toStringMethod = typeof(object).GetMethod("ToString")!;
         var memberToStringCall = Expression.Call(objProperty, toStringMethod);
         var toLowerMethod2 = typeof(string).GetMethod("ToLower", Array.Empty<Type>());
         var memberToStringToLowerCall = Expression.Call(memberToStringCall, toLowerMethod2!);
-        call = Expression.Call(memberToStringToLowerCall, containsMethod, searchConst);
+        var call = Expression.Call(memberToStringToLowerCall, containsMethod, searchConst);
         return Expression.Lambda<Func<T, bool>>(call, obj);
     }
 }
