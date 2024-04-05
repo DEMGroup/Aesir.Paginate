@@ -9,10 +9,10 @@ namespace Aesir.Paginate.Extensions;
 [PublicAPI]
 public static class QueryableExtensions
 {
-    public static PagedResult<T> ToPaged<T, TConfig>(
+    public static PagedResult<T> ToPaged<T>(
         this IQueryable<T> source,
-        TConfig config
-    ) where TConfig : IPaginated
+        IPaginated config
+    )
     {
         source = config is IFiltered filtered ? source.ToFiltered(filtered) : source;
         source = config is ISorted sorted ? source.ToSorted(sorted) : source;
