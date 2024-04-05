@@ -1,59 +1,48 @@
 using System.Linq.Expressions;
+using Aesir.Paginate.Contracts;
 using Aesir.Paginate.Filtering;
-using Aesir.Paginate.Filtering.Models;
 using Aesir.Paginate.Models;
-using Aesir.Paginate.Sorting;
+using JetBrains.Annotations;
 
 namespace Aesir.Paginate.Extensions;
 
+[PublicAPI]
 public static class QueryableExtensions
 {
-    private static PagedCollectionResponse<T> ToPagedResponse<T>(
+    public static PagedResult<T> ToPaged<T>(
         this IQueryable<T> source,
-        Uri route,
-        int pageNumber,
-        int pageSize,
-        IReadOnlyCollection<string> filterBy,
-        IReadOnlyCollection<string> orderBy
-    ) where T : class
-        => new(
-            source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
-            route,
-            source.Count(),
-            pageNumber,
-            pageSize,
-            filterBy,
-            orderBy
-        );
-
-    public static PagedCollectionResponse<T> PageAndSortData<T>(
-        this IQueryable<T> source,
-        Uri baseUrl,
-        DataFilterBase filter,
-        Expression<Func<T, bool>>? predicate = null
+        IPaginated config
     )
-        where T : class
     {
-        if (predicate != null)
-            source = source.Where(predicate);
-
-        return source
-            .Filter(filter.FilterBy)
-            .Sort(filter.OrderBy)
-            .ToPagedResponse(
-                baseUrl,
-                filter.PageNumber,
-                filter.PageSize,
-                filter.FilterBy,
-                filter.OrderBy
-            );
+        source = config is IFiltered filtered ? source.ToFiltered(filtered) : source;
+        source = config is ISorted sorted ? source.ToSorted(sorted) : source;
+        
+        var totalRecords = source.Count();
+        return new PagedResult<T>(
+            totalRecords,
+            config.Page,
+            config.PerPage,
+            source
+                .Skip((config.Page - 1) * config.PerPage)
+                .Take(config.PerPage)
+        );
     }
 
-    private static IQueryable<T> Filter<T>(this IQueryable<T> source, IEnumerable<string> filters) where T : class
-        => FilterProvider.Filter(source, filters);
+    private static IQueryable<T> ToFiltered<T>(
+        this IQueryable<T> source,
+        IFiltered filter
+    ) => source.Where(PredicateBuilder.BuildPredicate<T>(filter));
 
-    private static IQueryable<T> Sort<T>(
-        this IQueryable<T> items,
-        IEnumerable<string> orderBy
-    ) where T : class => SortProvider.Sort(items, orderBy);
+    private static IQueryable<T> ToSorted<T>(
+        this IQueryable<T> source,
+        ISorted filter
+    )
+    {
+        var (selector, propertyType) = PredicateBuilder.CreateKeySelector<T>(filter.SortedProperty);
+        var orderByMethod = filter.IsAscending
+            ? Expression.Call(typeof(Queryable), "OrderBy", new[] { typeof(T), propertyType }, source.Expression, selector)
+            : Expression.Call(typeof(Queryable), "OrderByDescending", new[] { typeof(T), propertyType }, source.Expression, selector);
+
+        return source.Provider.CreateQuery<T>(orderByMethod);
+    }
 }
