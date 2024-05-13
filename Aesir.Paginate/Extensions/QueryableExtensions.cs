@@ -14,8 +14,8 @@ public static class QueryableExtensions
         IPaginated config
     )
     {
-        source = config is IFiltered filtered ? source.ToFiltered(filtered) : source;
-        source = config is ISorted sorted ? source.ToSorted(sorted) : source;
+        source = config is IFiltered filtered && IsFiltering(filtered) ? source.ToFiltered(filtered) : source;
+        source = config is ISorted sorted && IsSorting(sorted) ? source.ToSorted(sorted) : source;
         
         var totalRecords = source.Count();
         return new PagedResult<T>(
@@ -45,4 +45,10 @@ public static class QueryableExtensions
 
         return source.Provider.CreateQuery<T>(orderByMethod);
     }
+
+    private static bool IsFiltering(IFiltered filter)
+        => !string.IsNullOrEmpty(filter.FilteredProperty) && !string.IsNullOrEmpty(filter.Value);
+
+    private static bool IsSorting(ISorted sort)
+        => !string.IsNullOrEmpty(sort.SortedProperty);
 }
