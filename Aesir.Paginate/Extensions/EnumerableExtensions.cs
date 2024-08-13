@@ -5,8 +5,14 @@ namespace Aesir.Paginate.Extensions;
 
 public static class EnumerableExtensions
 {
-    public static PagedResult<T> ToPaged<T>(
+    public static async Task<PagedResult<T>> ToPagedAsync<T>(
         this IEnumerable<T> source,
-        IPaginated config
-    ) => source.AsQueryable().ToPaged(config);
+        IPaginated config,
+        CancellationToken cancellationToken
+    ) => await source
+        .AsQueryable()
+        .ToPagedAsync(
+            config,
+            cancellationToken
+        );
 }

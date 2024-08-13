@@ -3,45 +3,54 @@ using Aesir.Paginate.Contracts;
 using Aesir.Paginate.Filtering;
 using Aesir.Paginate.Models;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Aesir.Paginate.Extensions;
 
 [PublicAPI]
 public static class QueryableExtensions
 {
-    public static PagedResult<T> ToPaged<T>(
+    public static async Task<PagedResult<T>> ToPagedAsync<T>(
         this IQueryable<T> source,
-        IPaginated config
+        IPaginated config,
+        CancellationToken cancellationToken
     )
     {
         source = config is IFiltered filtered && IsFiltering(filtered) ? source.ToFiltered(filtered) : source;
         source = config is ISorted sorted && IsSorting(sorted) ? source.ToSorted(sorted) : source;
-        
+
         var totalRecords = source.Count();
+        var page = config.Page ?? 1;
+        var perPage = config.PerPage ?? 20;
+
         return new PagedResult<T>(
             totalRecords,
-            config.Page,
-            config.PerPage,
-            source
-                .Skip((config.Page - 1) * config.PerPage)
-                .Take(config.PerPage)
+            page,
+            config.PerPage ?? 20,
+            await source
+                .Skip((page - 1) * perPage)
+                .Take(perPage)
+                .ToArrayAsync(cancellationToken)
         );
     }
 
     private static IQueryable<T> ToFiltered<T>(
         this IQueryable<T> source,
         IFiltered filter
-    ) => source.Where(PredicateBuilder.BuildPredicate<T>(filter));
+    ) => PredicateBuilder.BuildPredicate<T>(filter) is { } expr ? source.Where(expr) : source;
 
     private static IQueryable<T> ToSorted<T>(
         this IQueryable<T> source,
         ISorted filter
     )
     {
+        if (filter.SortedProperty is null) return source;
+
         var (selector, propertyType) = PredicateBuilder.CreateKeySelector<T>(filter.SortedProperty);
         var orderByMethod = filter.IsAscending
-            ? Expression.Call(typeof(Queryable), "OrderBy", new[] { typeof(T), propertyType }, source.Expression, selector)
-            : Expression.Call(typeof(Queryable), "OrderByDescending", new[] { typeof(T), propertyType }, source.Expression, selector);
+            ? Expression.Call(typeof(Queryable), "OrderBy", [typeof(T), propertyType], source.Expression, selector)
+            : Expression.Call(typeof(Queryable), "OrderByDescending", [typeof(T), propertyType], source.Expression,
+                selector);
 
         return source.Provider.CreateQuery<T>(orderByMethod);
     }

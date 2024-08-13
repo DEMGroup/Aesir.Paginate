@@ -6,10 +6,12 @@ namespace Aesir.Paginate.Filtering;
 
 internal static class PredicateBuilder
 {
-    internal static Expression<Func<T, bool>> BuildPredicate<T>(
+    internal static Expression<Func<T, bool>>? BuildPredicate<T>(
         IFiltered filter
-    ) 
+    )
     {
+        if (filter.FilteredProperty is null) return null;
+        
         var parameter = Expression.Parameter(typeof(T), "x");
         var properties = filter.FilteredProperty.Split('.');
         
@@ -36,11 +38,11 @@ internal static class PredicateBuilder
         Expression body = filter.Type switch
         {
             FilterType.StartsWith => Expression.Call(propertyAccess,
-                typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), Expression.Constant(filter.Value)),
+                typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!, Expression.Constant(filter.Value)),
             FilterType.EndsWith => Expression.Call(propertyAccess,
-                typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), Expression.Constant(filter.Value)),
+                typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!, Expression.Constant(filter.Value)),
             FilterType.Contains => Expression.Call(propertyAccess,
-                typeof(string).GetMethod("Contains", new[] { typeof(string) }), Expression.Constant(filter.Value)),
+                typeof(string).GetMethod("Contains", new[] { typeof(string) })!, Expression.Constant(filter.Value)),
             _ => throw new ArgumentException("Unsupported filter type.")
         };
 

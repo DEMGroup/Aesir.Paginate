@@ -15,7 +15,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new Pagination(20, 1);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(500, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -28,7 +28,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new Pagination(20, 1);
 
-        var paged = db.Orders.Select(x => new { x.Id }).ToPaged(pagination);
+        var paged = await db.Orders.Select(x => new { x.Id }).ToPagedAsync(pagination, default);
         Assert.Equal(500, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -42,7 +42,7 @@ public class QueryableExtensionsTests
 
         var pagination = new PagedAndFiltered(20, 1, "Id", "1", FilterType.Contains);
 
-        var paged = db.Orders.Select(x => new { x.Id }).ToPaged(pagination);
+        var paged = await db.Orders.Select(x => new { x.Id }).ToPagedAsync(pagination, default);
 
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
@@ -57,7 +57,7 @@ public class QueryableExtensionsTests
 
         var pagination = new PagedAndFiltered(20, 1, "Order.Id", "1", FilterType.Contains);
 
-        var paged = db.Orders
+        var paged = await db.Orders
             .Join(
                 db.UserOrders,
                 o => o.UserOrderId,
@@ -67,7 +67,7 @@ public class QueryableExtensionsTests
                     Order = o,
                     uo.UserId
                 })
-            .ToPaged(pagination);
+            .ToPagedAsync(pagination, default);
 
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
@@ -82,7 +82,7 @@ public class QueryableExtensionsTests
 
         var pagination = new PagedAndFiltered(20, 1, nameof(UserOrder.OrderId), "1", FilterType.Contains);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -96,7 +96,7 @@ public class QueryableExtensionsTests
 
         var pagination = new PagedAndFiltered(20, 1, nameof(UserOrder.OrderId), "1", FilterType.StartsWith);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(111, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -109,7 +109,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndFiltered(20, 1, nameof(UserOrder.OrderId), "1", FilterType.EndsWith);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(50, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -122,7 +122,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndSorted(20, 1, "Id", false);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(500, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -135,7 +135,8 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndSorted(20, 1, "OrderId", false);
 
-        var paged = db.UserOrders.Select(x => new { x.UserId, x.OrderId, x.Id }).ToPaged(pagination);
+        var paged = await db.UserOrders.Select(x => new { x.UserId, x.OrderId, x.Id })
+            .ToPagedAsync(pagination, default);
         Assert.Equal(500, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -148,7 +149,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndSorted(20, 1, "Order.Id", false);
 
-        var paged = db.Orders
+        var paged = await db.Orders
             .Join(
                 db.UserOrders,
                 o => o.UserOrderId,
@@ -158,7 +159,7 @@ public class QueryableExtensionsTests
                     Order = o,
                     uo.UserId
                 })
-            .ToPaged(pagination);
+            .ToPagedAsync(pagination, default);
 
         Assert.Equal(500, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
@@ -172,7 +173,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndFilteredAndSorted(20, 1, "Id", "1", FilterType.Contains, "Id", false);
 
-        var paged = db.UserOrders.ToPaged(pagination);
+        var paged = await db.UserOrders.ToPagedAsync(pagination, default);
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -185,7 +186,8 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndFilteredAndSorted(20, 1, "Id", "1", FilterType.Contains, "Id", false);
 
-        var paged = db.UserOrders.Select(x => new { x.UserId, x.OrderId, x.Id }).ToPaged(pagination);
+        var paged = await db.UserOrders.Select(x => new { x.UserId, x.OrderId, x.Id })
+            .ToPagedAsync(pagination, default);
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
         Assert.Equal(pagination.Page, paged.CurrentPage);
@@ -198,7 +200,7 @@ public class QueryableExtensionsTests
         await using var db = await CreateDatabase();
         var pagination = new PagedAndFilteredAndSorted(20, 1, "Order.Id", "1", FilterType.Contains, "Order.Id", false);
 
-        var paged = db.Orders
+        var paged = await db.Orders
             .Join(
                 db.UserOrders,
                 o => o.UserOrderId,
@@ -208,7 +210,7 @@ public class QueryableExtensionsTests
                     Order = o,
                     uo.UserId
                 })
-            .ToPaged(pagination);
+            .ToPagedAsync(pagination, default);
 
         Assert.Equal(176, paged.TotalRecords);
         Assert.Equal(pagination.PerPage, paged.RecordsPerPage);
@@ -232,20 +234,21 @@ public class QueryableExtensionsTests
         return db;
     }
 
-    record Pagination(int PerPage, int Page) : IPaginated;
+    private record Pagination(int? PerPage, int? Page) : IPaginated;
 
-    record PagedAndSorted(int PerPage, int Page, string SortedProperty, bool IsAscending) : IPaginated, ISorted;
+    private record PagedAndSorted(int? PerPage, int? Page, string SortedProperty, bool IsAscending)
+        : IPaginated, ISorted;
 
-    record PagedAndFiltered(int PerPage, int Page, string FilteredProperty, string Value, FilterType Type)
+    private record PagedAndFiltered(int? PerPage, int? Page, string FilteredProperty, string Value, FilterType Type)
         : IPaginated, IFiltered;
 
-    record PagedAndFilteredAndSorted(
-        int PerPage,
-        int Page,
+    private record PagedAndFilteredAndSorted(
+        int? PerPage,
+        int? Page,
         string FilteredProperty,
         string Value,
         FilterType Type,
         string SortedProperty,
-        bool IsAscending)
-        : IPaginated, IFiltered, ISorted;
+        bool IsAscending
+    ) : IPaginated, IFiltered, ISorted;
 }
