@@ -23,14 +23,19 @@ public static class QueryableExtensions
         var page = config.Page ?? 1;
         var perPage = config.PerPage ?? 20;
 
+        source = source
+            .Skip((page - 1) * perPage)
+            .Take(perPage);
+
+         var items = source is IAsyncEnumerable<T>
+            ? await source.ToArrayAsync(cancellationToken)
+            : source.ToArray();
+
         return new PagedResult<T>(
             totalRecords,
             page,
             config.PerPage ?? 20,
-            await source
-                .Skip((page - 1) * perPage)
-                .Take(perPage)
-                .ToArrayAsync(cancellationToken)
+            items
         );
     }
 
