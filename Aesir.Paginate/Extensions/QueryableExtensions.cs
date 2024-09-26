@@ -10,6 +10,36 @@ namespace Aesir.Paginate.Extensions;
 [PublicAPI]
 public static class QueryableExtensions
 {
+    public static async Task<PagedResult<TEntity>> ToPagedAsync<T, TEntity>(
+        this IQueryable<T> source,
+        IPaginated config,
+        Func<T, TEntity> selector,
+        CancellationToken cancellationToken
+    )
+    {
+        source = config is IFiltered filtered && IsFiltering(filtered) ? source.ToFiltered(filtered) : source;
+        source = config is ISorted sorted && IsSorting(sorted) ? source.ToSorted(sorted) : source;
+
+        var totalRecords = source.Count();
+        var page = config.Page ?? 1;
+        var perPage = config.PerPage ?? 20;
+
+        source = source
+            .Skip((page - 1) * perPage)
+            .Take(perPage);
+
+        var items = source is IAsyncEnumerable<T>
+            ? await source.ToArrayAsync(cancellationToken)
+            : source.ToArray();
+
+        return new PagedResult<TEntity>(
+            totalRecords,
+            page,
+            config.PerPage ?? 20,
+            items.Select(selector)
+        );
+    }
+
     public static async Task<PagedResult<T>> ToPagedAsync<T>(
         this IQueryable<T> source,
         IPaginated config,
@@ -27,7 +57,7 @@ public static class QueryableExtensions
             .Skip((page - 1) * perPage)
             .Take(perPage);
 
-         var items = source is IAsyncEnumerable<T>
+        var items = source is IAsyncEnumerable<T>
             ? await source.ToArrayAsync(cancellationToken)
             : source.ToArray();
 
