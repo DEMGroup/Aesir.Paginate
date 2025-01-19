@@ -21,6 +21,7 @@ on:
 
 env:
   NUGET_ENABLE_LEGACY_CSPROJ_PACK: true
+  DOTNET_VERSION: 8.0.x
 
 jobs:
   bump-version:
@@ -38,20 +39,21 @@ jobs:
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Aesir.Paginate.sln"
+      PACKAGE: "Aesir.Paginate"
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1
+        uses: NuGet/setup-nuget@v2
         with:
           nuget-version: "latest"
 
-      - name: Setup .NET Core SDK 7.0.x
-        uses: actions/setup-dotnet@v3
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Add Github Package Source
         run: dotnet nuget add source --username DEMGroup --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
@@ -60,15 +62,16 @@ jobs:
         run: dotnet restore -r linux-x64
 
       - name: Build
-        run: dotnet build -v=q --configuration Release /p:Version=${{needs.bump-version.outputs.new_version}}
+        run: dotnet build --no-restore -v=q --configuration Release /p:Version=${{needs.bump-version.outputs.new_version}}
 
       # Package the build into a single nupkg/supkg
       - name: Pack
-        run: nuget pack Aesir.Paginate/Aesir.Paginate.csproj -IncludeReferencedProjects -Properties Configuration=Release -Version ${{needs.bump-version.outputs.new_version}} -OutputDirectory . -Symbols -SymbolPackageFormat snupkg
+        run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
       - name: Push
         run: |
-          dotnet nuget push Aesir.Paginate.${{needs.bump-version.outputs.new_version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
 
   create-new-github-release:
     needs: [release, bump-version]
@@ -78,7 +81,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
       - name: Push New Tag (temp manual because actions-ecosystem/action-push-tag@v1 is broken)
         run: |
