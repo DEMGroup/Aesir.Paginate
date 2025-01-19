@@ -277,7 +277,7 @@ public class QueryableExtensionsTests
 
 	private record Pagination(int? PerPage, int? Page) : IPaginated;
 
-	private record PagedAndSorted(int? PerPage, int? Page, string SortedProperty, bool IsAscending)
+	private record PagedAndSorted(int? PerPage, int? Page, string SortedProperty, bool? IsAscending)
 			: IPaginated,
 					ISorted;
 
@@ -286,7 +286,7 @@ public class QueryableExtensionsTests
 			int? Page,
 			string FilteredProperty,
 			string Value,
-			FilterType Type
+			FilterType? Type
 	) : IPaginated, IFiltered;
 
 	private record PagedAndFilteredAndSorted(
@@ -294,8 +294,8 @@ public class QueryableExtensionsTests
 			int? Page,
 			string FilteredProperty,
 			string Value,
-			FilterType Type,
+			FilterType? Type,
 			string SortedProperty,
-			bool IsAscending
+			bool? IsAscending
 	) : IPaginated, IFiltered, ISorted;
 }

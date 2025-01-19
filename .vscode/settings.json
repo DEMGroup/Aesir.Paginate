@@ -1,0 +1,4 @@
+{
+    // project can be **/*Test or **/*Tests
+    "dotnet-test-explorer.testProjectPath": "**/*@(Tests|Test).@(csproj|vbproj|fsproj)"
+}
