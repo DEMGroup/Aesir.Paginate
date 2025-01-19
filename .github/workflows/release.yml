@@ -11,10 +11,10 @@ on:
           - patch
           - minor
           - major
-      skip_prs:
-        description: "Should we skip sending PRs to dependent repos for the version update?"
+      suffix:
+        description: "Should we suffix the version (-beta, -alpha, -rc#)?"
         required: false
-        type: boolean
+        type: string
   pull_request:
     branches: [main]
     types: [closed]
@@ -55,9 +55,6 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Add Github Package Source
-        run: dotnet nuget add source --username DEMGroup --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
-
       - name: Install dependencies
         run: dotnet restore -r linux-x64
 
@@ -70,8 +67,8 @@ jobs:
 
       - name: Push
         run: |
-          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
-          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
 
   create-new-github-release:
     needs: [release, bump-version]
