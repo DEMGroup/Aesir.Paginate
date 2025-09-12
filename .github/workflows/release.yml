@@ -15,6 +15,7 @@ on:
         description: "Should we suffix the version (-beta, -alpha, -rc#)?"
         required: false
         type: string
+        default: ""
   pull_request:
     branches: [main]
     types: [closed]
@@ -59,7 +60,7 @@ jobs:
         run: dotnet restore -r linux-x64
 
       - name: Build
-        run: dotnet build --no-restore -v=q --configuration Release /p:Version=${{needs.bump-version.outputs.new_version}}
+        run: dotnet build --no-restore -v=q --configuration Release /p:Version=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}
 
       # Package the build into a single nupkg/supkg
       - name: Pack
@@ -82,14 +83,14 @@ jobs:
       - run: git fetch --prune --unshallow --tags
       - name: Push New Tag (temp manual because actions-ecosystem/action-push-tag@v1 is broken)
         run: |
-          message='${{needs.bump-version.outputs.new_version_with_v}}: Sha #${{ github.sha }}'
+          message='${{needs.bump-version.outputs.new_version_with_v}}${{ inputs.suffix }}: Sha #${{ github.sha }}'
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${{needs.bump-version.outputs.new_version_with_v}}" -m "${message}"
-          git push origin "${{needs.bump-version.outputs.new_version_with_v}}"
-          gh release create --generate-notes "${{needs.bump-version.outputs.new_version_with_v}}"
+          git tag -a "${{needs.bump-version.outputs.new_version_with_v}}${{ inputs.suffix }}" -m "${message}"
+          git push origin "${{needs.bump-version.outputs.new_version_with_v}}${{ inputs.suffix }}"
+          gh release create --generate-notes "${{needs.bump-version.outputs.new_version_with_v}}${{ inputs.suffix }}"
 
       - name: Add release summary
         run: |
           echo '### New version released! :rocket:' >> $GITHUB_STEP_SUMMARY
-          echo 'Version number: ${{needs.bump-version.outputs.new_version_with_v}}' >> $GITHUB_STEP_SUMMARY
+          echo 'Version number: ${{needs.bump-version.outputs.new_version_with_v}}${{ inputs.suffix }}' >> $GITHUB_STEP_SUMMARY
