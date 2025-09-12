@@ -77,7 +77,7 @@ public static class QueryableExtensions
 			return source;
 
 		var (selector, propertyType) = PredicateBuilder.CreateKeySelector<T>(filter.SortedProperty);
-		var orderByMethod = filter.IsAscending is true
+		var orderByMethod = (filter.IsAscending ?? true)
 				? Expression.Call(
 						typeof(Queryable),
 						"OrderBy",
