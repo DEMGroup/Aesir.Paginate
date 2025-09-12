@@ -64,7 +64,7 @@ jobs:
 
       # Package the build into a single nupkg/supkg
       - name: Pack
-        run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
       - name: Push
         run: |
