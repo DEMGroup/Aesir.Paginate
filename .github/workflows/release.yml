@@ -66,7 +66,16 @@ jobs:
       - name: Pack
         run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
+      - name: Push Debug Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: inputs.suffix != ''
+        run: |
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.nupkg --api-key ${GITHUB_TOKEN} --source github.com
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.snupkg --api-key ${GITHUB_TOKEN} --source github.com
+
       - name: Push
+        if: inputs.suffix == ''
         run: |
           dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
           dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
