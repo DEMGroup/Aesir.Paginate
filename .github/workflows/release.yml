@@ -67,12 +67,11 @@ jobs:
         run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
       - name: Push Debug Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: inputs.suffix != ''
         run: |
-          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.nupkg --api-key ${GITHUB_TOKEN} --source github.com
-          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.snupkg --api-key ${GITHUB_TOKEN} --source github.com
+          dotnet nuget add source --username DEMGroup --password ${GH_TOKEN} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.nupkg --api-key ${GH_TOKEN} --source github.com
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.snupkg --api-key ${GH_TOKEN} --source github.com
 
       - name: Push
         if: inputs.suffix == ''
