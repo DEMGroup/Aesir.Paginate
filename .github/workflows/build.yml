@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: dotnet build -v=q --configuration Release --no-restore
       - name: Test
-        run: dotnet test --framework net8.0 --no-build --no-restore --logger trx --results-directory TestResults
+        run: dotnet test --framework net8.0 --logger trx --results-directory TestResults
       - name: Check Test File Exists
         if: success() || failure()
         id: hasTests
