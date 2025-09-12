@@ -25,12 +25,14 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-      - name: Add GH package source, restore, build and test
-        run: |
-          dotnet nuget add source --username DEMGroup --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
-          dotnet restore -r linux-x64
-          dotnet build -v=q --configuration Release --no-restore
-          dotnet test --no-restore --no-build --logger trx --results-directory TestResults
+      - name: Add Github Package Source
+        run: dotnet nuget add source --username DEMGroup --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
+      - name: Install dependencies
+        run: dotnet restore -r linux-x64
+      - name: Build
+        run: dotnet build --configuration Release -v=q --no-restore
+      - name: Test
+        run: dotnet test --configuration Release --no-build --no-restore --logger trx --results-directory TestResults
       - name: Check Test File Exists
         if: success() || failure()
         id: hasTests
