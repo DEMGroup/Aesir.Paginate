@@ -73,7 +73,7 @@ public static class QueryableExtensions
 
 	private static IQueryable<T> ToSorted<T>(this IQueryable<T> source, ISorted filter)
 	{
-		if (filter.SortedProperty is null)
+		if (string.IsNullOrWhiteSpace(filter.SortedProperty))
 			return source;
 
 		var (selector, propertyType) = PredicateBuilder.CreateKeySelector<T>(filter.SortedProperty);
