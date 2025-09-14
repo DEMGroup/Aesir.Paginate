@@ -9,6 +9,20 @@ namespace Aesir.Paginate.Test.Extensions;
 
 public class QueryableExtensionsTests
 {
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	public async Task ToPaged_DoesNotSort_WhenSortedPropertyIsNullOrWhitespace(string sortedProperty)
+	{
+		await using var db = await CreateDatabase();
+		var pagination = new PagedAndSorted(20, 1, sortedProperty, true);
+		var paged = await db.UserOrders.ToPagedAsync(pagination, default);
+		// Should return in original order (Id ascending)
+		Assert.Equal(1, paged.Records.First().Id);
+		Assert.Equal(20, paged.Records.Count());
+	}
+
 	[Fact]
 	public async Task ToPaged_ReturnsPaged()
 	{
@@ -275,27 +289,27 @@ public class QueryableExtensionsTests
 		return db;
 	}
 
-	private record Pagination(int? PerPage, int? Page) : IPaginated;
+	record Pagination(int? PerPage, int? Page) : IPaginated;
 
-	private record PagedAndSorted(int? PerPage, int? Page, string SortedProperty, bool? IsAscending)
-			: IPaginated,
-					ISorted;
+	record PagedAndSorted(int? PerPage, int? Page, string SortedProperty, bool IsAscending)
+		: IPaginated,
+			ISorted;
 
-	private record PagedAndFiltered(
-			int? PerPage,
-			int? Page,
-			string FilteredProperty,
-			string Value,
-			FilterType? Type
+	record PagedAndFiltered(
+		int? PerPage,
+		int? Page,
+		string FilteredProperty,
+		string Value,
+		FilterType Type
 	) : IPaginated, IFiltered;
 
-	private record PagedAndFilteredAndSorted(
-			int? PerPage,
-			int? Page,
-			string FilteredProperty,
-			string Value,
-			FilterType? Type,
-			string SortedProperty,
-			bool? IsAscending
+	record PagedAndFilteredAndSorted(
+		int? PerPage,
+		int? Page,
+		string FilteredProperty,
+		string Value,
+		FilterType Type,
+		string SortedProperty,
+		bool IsAscending
 	) : IPaginated, IFiltered, ISorted;
 }

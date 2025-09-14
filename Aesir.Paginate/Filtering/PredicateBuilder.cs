@@ -8,7 +8,10 @@ internal static class PredicateBuilder
 {
 	internal static Expression<Func<T, bool>>? BuildPredicate<T>(IFiltered filter)
 	{
-		if (filter.FilteredProperty is null || filter.Type is null)
+		if (
+			string.IsNullOrWhiteSpace(filter.FilteredProperty)
+			 || string.IsNullOrWhiteSpace(filter.Value)
+			 )
 			return null;
 
 		var parameter = Expression.Parameter(typeof(T), "x");
