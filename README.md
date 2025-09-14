@@ -44,7 +44,7 @@ var pagedOrders = _db.Orders.PageAndSortData(UriHelpers.CreateRoute(HttpContext.
 
 ### Sorting the data
 
-Currently Aesir.Paginate only supports "Contains" as a filtering option.
+Aesir.Paginate supports "Contains", "StartsWith", and "EndsWith" as filtering options.
 
 ```csharp
 var filter = new DataFilterBase {
