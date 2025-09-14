@@ -22,7 +22,7 @@ public class PredicateBuilderTests
 		Assert.Null(predicate);
 	}
 
-	private record TestFiltered(string FilteredProperty, string Value, FilterType Type) : IFiltered;
+	private record TestFiltered(string FilteredProperty, string Value, FilterType? Type) : IFiltered;
 
 	private class TestEntity
 	{
