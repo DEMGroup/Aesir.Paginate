@@ -79,10 +79,11 @@ public static class QueryableExtensions
         ISorted filter
     )
     {
-        if (filter.SortedProperty is null) return source;
+        if (string.IsNullOrWhiteSpace(filter.SortedProperty) || filter.IsAscending is null)
+            return source;
 
         var (selector, propertyType) = PredicateBuilder.CreateKeySelector<T>(filter.SortedProperty);
-        var orderByMethod = filter.IsAscending
+        var orderByMethod = (bool)filter.IsAscending
             ? Expression.Call(typeof(Queryable), "OrderBy", [typeof(T), propertyType], source.Expression, selector)
             : Expression.Call(typeof(Queryable), "OrderByDescending", [typeof(T), propertyType], source.Expression,
                 selector);
@@ -91,8 +92,8 @@ public static class QueryableExtensions
     }
 
     private static bool IsFiltering(IFiltered filter)
-        => !string.IsNullOrEmpty(filter.FilteredProperty) && !string.IsNullOrEmpty(filter.Value);
+        => !string.IsNullOrWhiteSpace(filter.FilteredProperty) && !string.IsNullOrWhiteSpace(filter.Value) && filter.Type is not null;
 
     private static bool IsSorting(ISorted sort)
-        => !string.IsNullOrEmpty(sort.SortedProperty);
+        => !string.IsNullOrWhiteSpace(sort.SortedProperty) && sort.IsAscending is not null;
 }

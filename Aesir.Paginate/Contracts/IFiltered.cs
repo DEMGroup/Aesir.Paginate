@@ -8,5 +8,5 @@ public interface IFiltered
 {
     string? FilteredProperty { get; }
     string? Value { get; }
-    FilterType Type { get; }
+    FilterType? Type { get; }
 }

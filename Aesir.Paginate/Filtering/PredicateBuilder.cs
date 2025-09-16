@@ -10,8 +10,9 @@ internal static class PredicateBuilder
         IFiltered filter
     )
     {
-        if (filter.FilteredProperty is null) return null;
-        
+        if (string.IsNullOrWhiteSpace(filter.FilteredProperty) || string.IsNullOrWhiteSpace(filter.Value))
+            return null;
+
         var parameter = Expression.Parameter(typeof(T), "x");
         var properties = filter.FilteredProperty.Split('.');
         
