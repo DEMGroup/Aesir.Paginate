@@ -40,7 +40,7 @@ jobs:
     env:
       BUILD_CONFIG: "Release"
       SOLUTION: "Aesir.Paginate.sln"
-      PACKAGE: "Aesir.Paginate"
+      PACKAGE: "Aesir.Paginatey"
       GH_TOKEN: ${{ github.token }}
 
     steps:
