@@ -41,7 +41,6 @@ jobs:
       BUILD_CONFIG: "Release"
       SOLUTION: "Aesir.Paginate.sln"
       PACKAGE: "Aesir.Paginate"
-      PACKAGE_NAME: "Aesir.Paginatey"
       GH_TOKEN: ${{ github.token }}
 
     steps:
@@ -65,24 +64,30 @@ jobs:
 
       # Package the build into a single nupkg/supkg
       - name: Pack
-        run: dotnet pack ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj --output . --no-build --no-restore --configuration Release /p:PackageVersion=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        run: |
+          dotnet pack \
+            ${{ env.PACKAGE }}/${{ env.PACKAGE }}.csproj \
+            --output . \
+            --no-build \
+            --no-restore \
+            --configuration Release \
+            /p:PackageVersion=${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }} \
+            -p:IncludeSymbols=true \
+            -p:SymbolPackageFormat=snupkg \
+            -p:NuspecOptions='repositoryUrl="https://github.com/DEMGroup/Aesir.Paginate",repositoryType="git",authors="AesirCrypto,DEM Group",description="A library to help with pagination in .NET applications."'
 
       - name: Push Debug Packages
         if: inputs.suffix != ''
         run: |
           dotnet nuget add source --username DEMGroup --password ${GH_TOKEN} --store-password-in-clear-text --name github.com "https://nuget.pkg.github.com/DEMGroup/index.json"
-          mv ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg
-          mv ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg
-          dotnet nuget push ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg --api-key ${GH_TOKEN} --source github.com
-          dotnet nuget push ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg --api-key ${GH_TOKEN} --source github.com
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.nupkg --api-key ${GH_TOKEN} --source github.com
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{inputs.suffix}}.snupkg --api-key ${GH_TOKEN} --source github.com
 
       - name: Push
         if: inputs.suffix == ''
         run: |
-          mv ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg
-          mv ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg
-          dotnet nuget push ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
-          dotnet nuget push ${{ env.PACKAGE_NAME }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
+          dotnet nuget push ${{ env.PACKAGE }}.${{needs.bump-version.outputs.new_version}}${{ inputs.suffix }}.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_TOKEN }}
 
   create-new-github-release:
     needs: [release, bump-version]
